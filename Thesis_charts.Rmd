@@ -1,0 +1,385 @@
+---
+title: "Thesis Charts: Using Weighting Algorithms to Reduce Bad-Actor Reporting"
+author: "Lucas Yang a.k.a. Ari Yang"
+date: "2023-3-12"
+output:
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Charts to Make
+
+Chart 1: Removed malicious posts per algorithm per iteration (total)
+Chart 2: Percentage malicious posts removed per algorithm per iteration (total) 
+Chart 3: Percentage removed non-malicious posts per algorithm per iteration (total)
+Pie Charts: Percentage of bad actor posts reported, percentage of good actor posts reported (maybe don't do)
+Chart 4: Good and bad actor report ratings over time, smart 1 algorithm
+Chart 5: Good and bad actor report ratings over time, smart 2 algorithm
+
+## Reading the data file
+
+First we need to read all of the data that we will be using for analysis.
+
+```{r}
+iteration1PostPath = "D:\\Schoolwork\\Thesis\\Data_files\\iteration1_posts.csv"
+iteration1UserPath = "D:\\Schoolwork\\Thesis\\Data_files\\iteration1_users.csv"
+iteration2PostPath = "D:\\Schoolwork\\Thesis\\Data_files\\iteration2_posts.csv"
+iteration2UserPath = "D:\\Schoolwork\\Thesis\\Data_files\\iteration2_users.csv"
+iteration3PostPath = "D:\\Schoolwork\\Thesis\\Data_files\\iteration3_posts.csv"
+iteration3UserPath = "D:\\Schoolwork\\Thesis\\Data_files\\iteration3_users.csv"
+iteration4PostPath = "D:\\Schoolwork\\Thesis\\Data_files\\iteration4_posts.csv"
+iteration4UserPath = "D:\\Schoolwork\\Thesis\\Data_files\\iteration4_users.csv"
+iteration5PostPath = "D:\\Schoolwork\\Thesis\\Data_files\\iteration5_posts.csv"
+iteration5UserPath = "D:\\Schoolwork\\Thesis\\Data_files\\iteration5_users.csv"
+
+Iteration1Posts <- read.csv(iteration1PostPath, header = TRUE)
+Iteration1Users <- read.csv(iteration1UserPath, header = TRUE)
+Iteration2Posts <- read.csv(iteration2PostPath, header = TRUE)
+Iteration2Users <- read.csv(iteration2UserPath, header = TRUE)
+Iteration3Posts <- read.csv(iteration3PostPath, header = TRUE)
+Iteration3Users <- read.csv(iteration3UserPath, header = TRUE)
+Iteration4Posts <- read.csv(iteration4PostPath, header = TRUE)
+Iteration4Users <- read.csv(iteration4UserPath, header = TRUE)
+Iteration5Posts <- read.csv(iteration5PostPath, header = TRUE)
+Iteration5Users <- read.csv(iteration5UserPath, header = TRUE)
+```
+
+## Importing Libraries
+
+In order to represent data in the best manner, this project will make use of the ggplot2 and tidyverse libraries to plot all the data. 
+
+```{r}
+library(ggplot2)
+library(tidyverse)
+```
+
+# Data Overview
+
+First, we will get familiar with the data sets which we imported.
+
+```{r}
+summary(Iteration5Users)
+```
+Data shows off the users, and how their values are distributed. 
+
+```{r}
+summary(Iteration5Posts) 
+```
+This data shows the posts, as well as the number of reports each post received. 
+
+# Data Exploration 1: Removed malicious posts per algorithm per iteration (total)
+
+
+```{r}
+Iteration1MaliciousPosts <- subset(Iteration1Posts, Malicious == "true")
+Iteration2MaliciousPosts <- subset(Iteration2Posts, Malicious == "true")
+Iteration3MaliciousPosts <- subset(Iteration3Posts, Malicious == "true")
+Iteration4MaliciousPosts <- subset(Iteration4Posts, Malicious == "true")
+Iteration5MaliciousPosts <- subset(Iteration5Posts, Malicious == "true")
+
+Dumb1MaliciousIterations = data.frame(NumRemoved = c(table(Iteration1MaliciousPosts$Dumb1Removed)["true"],
+                  table(Iteration2MaliciousPosts$Dumb1Removed)["true"],
+                  table(Iteration3MaliciousPosts$Dumb1Removed)["true"],
+                  table(Iteration4MaliciousPosts$Dumb1Removed)["true"],
+                  table(Iteration5MaliciousPosts$Dumb1Removed)["true"]), Iteration = 1:5)
+Dumb2MaliciousIterations = data.frame(NumRemoved = c(table(Iteration1MaliciousPosts$Dumb2Removed)["true"],
+                  table(Iteration2MaliciousPosts$Dumb2Removed)["true"],
+                  table(Iteration3MaliciousPosts$Dumb2Removed)["true"],
+                  table(Iteration4MaliciousPosts$Dumb2Removed)["true"],
+                  table(Iteration5MaliciousPosts$Dumb2Removed)["true"]), Iteration = 1:5)
+Smart1MaliciousIterations = data.frame(NumRemoved = c(table(Iteration1MaliciousPosts$Smart1Removed)["true"],
+                  table(Iteration2MaliciousPosts$Smart1Removed)["true"],
+                  table(Iteration3MaliciousPosts$Smart1Removed)["true"],
+                  table(Iteration4MaliciousPosts$Smart1Removed)["true"],
+                  table(Iteration5MaliciousPosts$Smart1Removed)["true"]), Iteration = 1:5)
+Smart2MaliciousIterations = data.frame(NumRemoved = c(table(Iteration1MaliciousPosts$Smart2Removed)["true"],
+                  table(Iteration2MaliciousPosts$Smart2Removed)["true"],
+                  table(Iteration3MaliciousPosts$Smart2Removed)["true"],
+                  table(Iteration4MaliciousPosts$Smart2Removed)["true"],
+                  table(Iteration5MaliciousPosts$Smart2Removed)["true"]), Iteration = 1:5)
+
+maliciousPostCount <- table(Iteration1Posts$Malicious)["true"]
+
+plot(
+  Dumb1MaliciousIterations$Iteration, Dumb1MaliciousIterations$NumRemoved,
+  col = "red",
+  type = 'l',
+  main = "Cumulative Malicious Post Removal",
+  xlab = "Iteration",
+  ylab = "Malicious Posts Removed (Count)",
+  ylim = c(0, maliciousPostCount)
+)
+
+lines(
+  Dumb2MaliciousIterations$Iteration, Dumb2MaliciousIterations$NumRemoved,
+  col = "blue",
+  type = 'l'
+)
+lines(
+  Smart1MaliciousIterations$Iteration, Smart1MaliciousIterations$NumRemoved,
+  col = "green",
+  type = 'l'
+)
+lines(
+  Smart2MaliciousIterations$Iteration, Smart2MaliciousIterations$NumRemoved,
+  col = "purple",
+  type = 'l'
+)
+
+legend(
+  1, 160000,
+  legend = c("Dumb 1", "Dumb 2", "Smart 1", "Smart 2"),
+  fill = c("red", "blue", "green", "purple")
+)
+
+par(new = TRUE)
+
+plot(
+  Dumb1MaliciousIterations$Iteration, (Dumb1MaliciousIterations$NumRemoved/maliciousPostCount)*100,
+  col = "red",
+  type = 'n',
+  # main = "Cumulative Malicious Post Removal",
+  # xlab = "Iteration",
+  xlab = "",
+  # ylab = "Malicious Posts Removed (%)",
+  ylab = "",
+  ylim = c(0, 100),
+  yaxt = 'n'
+)
+
+axis(4)
+
+```
+
+
+## Data Exploration 2: Removed malicious posts per algorithm per iteration (percentage total)
+
+
+
+```{r}
+plot(
+  Dumb1MaliciousIterations$Iteration, (Dumb1MaliciousIterations$NumRemoved/maliciousPostCount)*100,
+  col = "red",
+  type = 'l',
+  main = "Cumulative Malicious Post Removal",
+  xlab = "Iteration",
+  ylab = "Malicious Posts Removed (%)",
+  ylim = c(0, 100)
+)
+
+lines(
+  Dumb2MaliciousIterations$Iteration, (Dumb2MaliciousIterations$NumRemoved/maliciousPostCount)*100,
+  col = "blue",
+  type = 'l'
+)
+lines(
+  Smart1MaliciousIterations$Iteration, (Smart1MaliciousIterations$NumRemoved/maliciousPostCount)*100,
+  col = "green",
+  type = 'l'
+)
+lines(
+  Smart2MaliciousIterations$Iteration, (Smart2MaliciousIterations$NumRemoved/maliciousPostCount)*100,
+  col = "purple",
+  type = 'l'
+)
+
+legend(
+  1, 95,
+  legend = c("Dumb 1", "Dumb 2", "Smart 1", "Smart 2"),
+  fill = c("red", "blue", "green", "purple")
+)
+
+(Dumb1MaliciousIterations$NumRemoved/maliciousPostCount)*100
+(Dumb2MaliciousIterations$NumRemoved/maliciousPostCount)*100
+(Smart1MaliciousIterations$NumRemoved/maliciousPostCount)*100
+(Smart2MaliciousIterations$NumRemoved/maliciousPostCount)*100
+```
+
+
+## Data Exploration 3: Removed non-malicious posts per algorithm per iteration (percentage total)
+
+```{r}
+Iteration1NonMaliciousPosts <- subset(Iteration1Posts, Malicious == "false")
+Iteration2NonMaliciousPosts <- subset(Iteration2Posts, Malicious == "false")
+Iteration3NonMaliciousPosts <- subset(Iteration3Posts, Malicious == "false")
+Iteration4NonMaliciousPosts <- subset(Iteration4Posts, Malicious == "false")
+Iteration5NonMaliciousPosts <- subset(Iteration5Posts, Malicious == "false")
+
+Dumb1NonMaliciousIterations = data.frame(NumRemoved = c(table(Iteration1NonMaliciousPosts$Dumb1Removed)["true"],
+                  table(Iteration2NonMaliciousPosts$Dumb1Removed)["true"],
+                  table(Iteration3NonMaliciousPosts$Dumb1Removed)["true"],
+                  table(Iteration4NonMaliciousPosts$Dumb1Removed)["true"],
+                  table(Iteration5NonMaliciousPosts$Dumb1Removed)["true"]), Iteration = 1:5)
+Dumb2NonMaliciousIterations = data.frame(NumRemoved = c(table(Iteration1NonMaliciousPosts$Dumb2Removed)["true"],
+                  table(Iteration2NonMaliciousPosts$Dumb2Removed)["true"],
+                  table(Iteration3NonMaliciousPosts$Dumb2Removed)["true"],
+                  table(Iteration4NonMaliciousPosts$Dumb2Removed)["true"],
+                  table(Iteration5NonMaliciousPosts$Dumb2Removed)["true"]), Iteration = 1:5)
+Smart1NonMaliciousIterations = data.frame(NumRemoved = c(table(Iteration1NonMaliciousPosts$Smart1Removed)["true"],
+                  table(Iteration2NonMaliciousPosts$Smart1Removed)["true"],
+                  table(Iteration3NonMaliciousPosts$Smart1Removed)["true"],
+                  table(Iteration4NonMaliciousPosts$Smart1Removed)["true"],
+                  table(Iteration5NonMaliciousPosts$Smart1Removed)["true"]), Iteration = 1:5)
+Smart2NonMaliciousIterations = data.frame(NumRemoved = c(table(Iteration1NonMaliciousPosts$Smart2Removed)["true"],
+                  table(Iteration2NonMaliciousPosts$Smart2Removed)["true"],
+                  table(Iteration3NonMaliciousPosts$Smart2Removed)["true"],
+                  table(Iteration4NonMaliciousPosts$Smart2Removed)["true"],
+                  table(Iteration5NonMaliciousPosts$Smart2Removed)["true"]), Iteration = 1:5)
+
+nonMaliciousPostCount <- table(Iteration1Posts$Malicious)["false"]
+
+plot(
+  Dumb1NonMaliciousIterations$Iteration, (Dumb1NonMaliciousIterations$NumRemoved/nonMaliciousPostCount)*100,
+  col = "red",
+  type = 'l',
+  main = "Cumulative Non-Malicious Post Removal",
+  xlab = "Iteration",
+  ylab = "Non-Malicious Posts Removed (%)",
+  ylim = c(0, 25)
+)
+
+lines(
+  Dumb2NonMaliciousIterations$Iteration, (Dumb2NonMaliciousIterations$NumRemoved/nonMaliciousPostCount)*100,
+  col = "blue",
+  type = 'l'
+)
+lines(
+  Smart1NonMaliciousIterations$Iteration, (Smart1NonMaliciousIterations$NumRemoved/nonMaliciousPostCount)*100,
+  col = "green",
+  type = 'l'
+)
+lines(
+  Smart2NonMaliciousIterations$Iteration, (Smart2NonMaliciousIterations$NumRemoved/nonMaliciousPostCount)*100,
+  col = "purple",
+  type = 'l'
+)
+
+legend(
+  4, 25,
+  legend = c("Dumb 1", "Dumb 2", "Smart 1", "Smart 2"),
+  fill = c("red", "blue", "green", "purple")
+)
+
+(Dumb1NonMaliciousIterations$NumRemoved/nonMaliciousPostCount)*100
+(Dumb2NonMaliciousIterations$NumRemoved/nonMaliciousPostCount)*100
+(Smart1NonMaliciousIterations$NumRemoved/nonMaliciousPostCount)*100
+(Smart2NonMaliciousIterations$NumRemoved/nonMaliciousPostCount)*100
+
+```
+
+
+# Data Exploration 4: Good and bad actor report ratings over time, smart 1 algorithm
+
+
+```{r}
+Iteration1BadActors <- subset(Iteration1Users, BadActor == "true")
+Iteration2BadActors <- subset(Iteration2Users, BadActor == "true")
+Iteration3BadActors <- subset(Iteration3Users, BadActor == "true")
+Iteration4BadActors <- subset(Iteration4Users, BadActor == "true")
+Iteration5BadActors <- subset(Iteration5Users, BadActor == "true")
+
+Iteration1GoodActors <- subset(Iteration1Users, BadActor == "false")
+Iteration2GoodActors <- subset(Iteration2Users, BadActor == "false")
+Iteration3GoodActors <- subset(Iteration3Users, BadActor == "false")
+Iteration4GoodActors <- subset(Iteration4Users, BadActor == "false")
+Iteration5GoodActors <- subset(Iteration5Users, BadActor == "false")
+
+#Iteration1BadActors['Iteration']=1
+
+Smart1BadActorRatings = data.frame(AvgRating = c(mean(Iteration1BadActors$Smart1Value),
+                  mean(Iteration2BadActors$Smart1Value),
+                  mean(Iteration3BadActors$Smart1Value),
+                  mean(Iteration4BadActors$Smart1Value),
+                  mean(Iteration5BadActors$Smart1Value)), Iteration = 1:5)
+Smart1GoodActorRatings = data.frame(AvgRating = c(mean(Iteration1GoodActors$Smart1Value),
+                  mean(Iteration2GoodActors$Smart1Value),
+                  mean(Iteration3GoodActors$Smart1Value),
+                  mean(Iteration4GoodActors$Smart1Value),
+                  mean(Iteration5GoodActors$Smart1Value)), Iteration = 1:5)
+
+plot(
+  Smart1BadActorRatings$Iteration, Smart1BadActorRatings$AvgRating,
+  col = "red",
+  main = "Average User Report Rating Within the Smart 1 Algorithm",
+  xlab = "Iteration",
+  ylab = "Score",
+  type = 'l',
+  xlim = c(1, 5),
+  ylim = c(0, 3)
+)
+
+lines(
+  Smart1BadActorRatings$Iteration, Smart1BadActorRatings$AvgRating,
+  type = 'o',
+  col = 'red'
+)
+lines(
+  Smart1GoodActorRatings$Iteration, Smart1GoodActorRatings$AvgRating,
+  type = 'l',
+  col = 'blue'
+)
+lines(
+  Smart1GoodActorRatings$Iteration, Smart1GoodActorRatings$AvgRating,
+  type = 'o',
+  col = 'blue'
+)
+
+legend(
+  1, 3,
+  legend = c("Bad Actors", "Good Actors"),
+  fill = c("red", "blue")
+)
+```
+
+# Data Exploration 4: Good and bad actor report ratings over time, smart 2 algorithm
+
+```{r}
+Smart2BadActorRatings = data.frame(AvgRating = c(mean(Iteration1BadActors$Smart2Value),
+                  mean(Iteration2BadActors$Smart2Value),
+                  mean(Iteration3BadActors$Smart2Value),
+                  mean(Iteration4BadActors$Smart2Value),
+                  mean(Iteration5BadActors$Smart2Value)), Iteration = 1:5)
+Smart2GoodActorRatings = data.frame(AvgRating = c(mean(Iteration1GoodActors$Smart2Value),
+                  mean(Iteration2GoodActors$Smart2Value),
+                  mean(Iteration3GoodActors$Smart2Value),
+                  mean(Iteration4GoodActors$Smart2Value),
+                  mean(Iteration5GoodActors$Smart2Value)), Iteration = 1:5)
+
+plot(
+  Smart2BadActorRatings$Iteration, Smart2BadActorRatings$AvgRating,
+  col = "red",
+  main = "Average User Report Rating Within the Smart 2 Algorithm",
+  xlab = "Iteration",
+  ylab = "Score",
+  type = 'l',
+  xlim = c(1, 5),
+  ylim = c(0, 3)
+)
+
+lines(
+  Smart2BadActorRatings$Iteration, Smart2BadActorRatings$AvgRating,
+  type = 'o',
+  col = 'red'
+)
+lines(
+  Smart2GoodActorRatings$Iteration, Smart2GoodActorRatings$AvgRating,
+  type = 'l',
+  col = 'blue'
+)
+lines(
+  Smart2GoodActorRatings$Iteration, Smart2GoodActorRatings$AvgRating,
+  type = 'o',
+  col = 'blue'
+)
+
+legend(
+  1, 3,
+  legend = c("Bad Actors", "Good Actors"),
+  fill = c("red", "blue")
+)
+```
+
