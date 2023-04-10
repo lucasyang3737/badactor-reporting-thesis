@@ -5,6 +5,15 @@ As such, code may not have comments or explanations.
 This repository accompanies my thesis report, which can be found at [Link coming soon!]
 
 ------------
+IMPORTANT NOTE
+------------
+If you are here from the thesis report, the algorithms are referred to internally as follows:
+Static Threshold: Dumb 1
+Percentage-based Threshold: Dumb 2
+Simple Reputational: Smart 1
+Trust-based Reputational: Smart 2
+
+------------
 USAGE
 ------------
 To run the simulated social media + algorithms program, download each of the three .java files (Main.java, User.java, Post.java) 
